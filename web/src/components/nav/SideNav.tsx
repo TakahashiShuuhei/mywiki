@@ -167,6 +167,7 @@ export default function SideNav() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updateTrigger, setUpdateTrigger] = useState(0);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['root']);
 
   const fetchTree = async () => {
     try {
@@ -206,17 +207,17 @@ export default function SideNav() {
   const router = useRouter();
 
   const handleItemClick = (event: React.MouseEvent, itemId: string) => {
-    // アイコンクリックの場合は何もしない（展開/折りたたみのデフォルト動作を維持）
+    // メニューボタンクリックの場合は何もしない
     const target = event.target as HTMLElement;
+    if (target.closest('.MuiIconButton-root')) {
+      return;
+    }
+
+    // アイコンクリックの場合は何もしない（expansionTriggerで制御）
     if (target.closest('.MuiTreeItem-iconContainer')) {
       return;
     }
 
-    // メニューボタンクリックの場合は何もしない
-    if (target.closest('.MuiIconButton-root')) {
-      return;
-    }
-    event.stopPropagation();
     // それ以外の場合はページ遷移
     if (itemId === 'root') {
       router.push('/');
@@ -247,8 +248,10 @@ export default function SideNav() {
           />
         ),
       }}
+      expansionTrigger="iconContainer"
+      expandedItems={expandedItems}
+      onExpandedItemsChange={(event, ids) => setExpandedItems(ids)}
       onItemClick={handleItemClick}
-      defaultExpandedItems={['root']}
       sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
     />
   );
