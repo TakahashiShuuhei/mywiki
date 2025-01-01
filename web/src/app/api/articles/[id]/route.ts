@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { datastoreClient } from '@/lib/datastore';
+import { ArticleModel } from '@/models/article';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const article = await datastoreClient.getArticle((await params).id);
+    const article = await ArticleModel.get((await params).id);
     if (!article) {
       return NextResponse.json(
         { error: '記事が見つかりません' },
@@ -29,7 +29,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
-    await datastoreClient.updateArticle((await params).id, body);
+    await ArticleModel.update((await params).id, body);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('記事の更新に失敗:', error);
@@ -45,7 +45,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await datastoreClient.deleteArticle((await params).id);
+    await ArticleModel.delete((await params).id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('記事の削除に失敗:', error);

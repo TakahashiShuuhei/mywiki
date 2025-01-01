@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import { datastoreClient } from '@/lib/datastore';
+import { ArticleModel } from '@/models/article';
 
 export async function GET() {
   try {
-    console.log('get articles');
-    const articles = await datastoreClient.listArticles();
-    console.log('articles', articles);
+    const articles = await ArticleModel.list();
     return NextResponse.json({ data: articles });
   } catch (error) {
     console.error('記事一覧の取得に失敗:', error);
@@ -19,7 +17,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const result = await datastoreClient.createArticle(body);
+    const result = await ArticleModel.create(body);
     return NextResponse.json({ data: result });
   } catch (error) {
     console.error('記事の作成に失敗:', error);

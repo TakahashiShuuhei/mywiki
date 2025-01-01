@@ -1,17 +1,11 @@
-// 'use server';
-
-import { Datastore } from '@google-cloud/datastore';
-import { Article, ArticleKey } from '@/types/article';
-
-const datastore = new Datastore({
-  namespace: 'mywiki',
-});
+import { datastore } from '@/lib/datastore/client';
+import type { Article, ArticleKey } from '@/types/article';
 
 const KIND = 'Article';
 
-export const datastoreClient = {
+export const ArticleModel = {
   // 記事の取得
-  async getArticle(id: string): Promise<Article | null> {
+  async get(id: string): Promise<Article | null> {
     const key = datastore.key([KIND, id]);
     const [entity] = await datastore.get(key);
     
@@ -24,7 +18,7 @@ export const datastoreClient = {
   },
 
   // 記事一覧の取得
-  async listArticles(limit = 10): Promise<Article[]> {
+  async list(limit = 10): Promise<Article[]> {
     const query = datastore
       .createQuery(KIND)
       .order('createdAt', { descending: true })
@@ -39,7 +33,7 @@ export const datastoreClient = {
   },
 
   // 記事の作成
-  async createArticle(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>): Promise<ArticleKey> {
+  async create(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>): Promise<ArticleKey> {
     const key = datastore.key([KIND]);
     const now = new Date();
     
@@ -57,7 +51,7 @@ export const datastoreClient = {
   },
 
   // 記事の更新
-  async updateArticle(id: string, article: Partial<Article>): Promise<void> {
+  async update(id: string, article: Partial<Article>): Promise<void> {
     const key = datastore.key([KIND, id]);
     const now = new Date();
 
@@ -73,7 +67,7 @@ export const datastoreClient = {
   },
 
   // 記事の削除
-  async deleteArticle(id: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     const key = datastore.key([KIND, id]);
     await datastore.delete(key);
   }
