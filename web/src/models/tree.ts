@@ -1,5 +1,5 @@
 import { datastore } from '@/lib/datastore/client';
-import { TreeNode, TreeStructure } from '@/types/tree';
+import { TreeNode, TreeStructure, ROOT_NODE_ID } from '@/types/tree';
 
 const TREE_KEY = ['System', 'tree'];
 
@@ -10,7 +10,7 @@ export const TreeModel = {
     // 初期状態を定義
     const initialTree: TreeStructure = {
       tree: [{
-        id: 'root',
+        id: ROOT_NODE_ID,
         title: 'ホーム',
         children: []
       }],
@@ -23,7 +23,7 @@ export const TreeModel = {
 
   // 親記事の末尾に子ページを追加
   async addChild(
-    parentId: string | null,
+    parentId: string,
     id: string,
     title: string,
     currentTree: TreeStructure
@@ -61,12 +61,12 @@ export const TreeModel = {
 
   // 指定したページとその配下を全て削除
   async removeSubtree(
-    id: number,
+    id: string,
     currentTree: TreeStructure
   ): Promise<TreeStructure> {
     const removeNodeRecursive = (nodes: TreeNode[]): TreeNode[] => {
       return nodes.filter(node => {
-        if (parseInt(node.id) === id) return false;
+        if (node.id === id) return false;
         if (node.children.length > 0) {
           node.children = removeNodeRecursive(node.children);
         }
@@ -118,7 +118,7 @@ export const TreeModel = {
   // ページを指定した位置に移動
   async moveNode(
     nodeId: string,
-    newParentId: string | null,
+    newParentId: string,
     currentTree: TreeStructure,
     index?: number
   ): Promise<TreeStructure> {
@@ -183,12 +183,12 @@ export const TreeModel = {
   },
 
   // 指定したノードの配下にある全てのノードのIDを取得（自身も含む）
-  getSubtreeIds(id: number, currentTree: TreeStructure): number[] {
-    const ids: number[] = [];
+  getSubtreeIds(id: string, currentTree: TreeStructure): string[] {
+    const ids: string[] = [];
 
     const collectIds = (nodes: TreeNode[]) => {
       for (const node of nodes) {
-        if (parseInt(node.id) === id) {
+        if (node.id === id) {
           ids.push(id);
           node.children.forEach(child => collectIds([child]));
           return true;

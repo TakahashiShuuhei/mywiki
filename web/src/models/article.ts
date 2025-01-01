@@ -5,7 +5,7 @@ const KIND = 'Article';
 
 export const ArticleModel = {
   // 記事の取得
-  async get(id: number): Promise<Article | null> {
+  async get(id: string): Promise<Article | null> {
     const key = datastore.key([KIND, id]);
     const [entity] = await datastore.get(key);
     

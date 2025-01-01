@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const article = await ArticleModel.get(parseInt((await params).id));
+    const article = await ArticleModel.get((await params).id);
     if (!article) {
       return NextResponse.json(
         { error: '記事が見つかりません' },
@@ -66,7 +66,7 @@ export async function DELETE(
     const currentTree = await TreeModel.get();
 
     // 3. 削除対象の記事IDを全て取得（配下のページも含む）
-    const idsToDelete = TreeModel.getSubtreeIds(parseInt((await params).id), currentTree);
+    const idsToDelete = TreeModel.getSubtreeIds((await params).id, currentTree);
 
     // 4. 全ての対象記事を削除
     const keysToDelete = idsToDelete.map(id => 
@@ -75,7 +75,7 @@ export async function DELETE(
     transaction.delete(keysToDelete);
 
     // 5. ツリー構造から記事を削除
-    const updatedTree = await TreeModel.removeSubtree(parseInt((await params).id), currentTree);
+    const updatedTree = await TreeModel.removeSubtree((await params).id, currentTree);
 
     // 6. 更新されたツリーを保存
     transaction.save({

@@ -21,12 +21,13 @@ export async function POST(request: Request) {
 
   try {
     await transaction.run();
+    const tempId = datastore.int(Date.now()).toString();
 
     // 1. リクエストボディを取得
     const { title = '新規記事', parentId = null } = await request.json();
 
     // 2. 記事を作成
-    const articleKey = datastore.key(['Article']);
+    const articleKey = datastore.key(['Article', tempId]);
     const article = {
       title,
       content: '',
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     // 4. ツリー構造を更新
     const updatedTree = await TreeModel.addChild(
       parentId,
-      articleKey.id as string,
+      tempId,
       title,
       currentTree
     );
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
     // 7. レスポンスを返す
     return NextResponse.json({
       article: {
-        id: articleKey.id,
+        id: tempId,
         ...article
       },
       tree: updatedTree

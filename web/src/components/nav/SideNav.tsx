@@ -25,6 +25,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { TreeStructure, TreeNode } from '@/types/tree';
+import { useRouter } from 'next/navigation';
 
 type TreeItemType = {
   id: string;
@@ -44,7 +45,9 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
   { id, itemId, label, disabled, children }: TreeItem2Props,
   ref: React.Ref<HTMLLIElement>,
 ) {
+  const router = useRouter();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     getRootProps,
@@ -64,6 +67,38 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
     setMenuAnchorEl(null);
   };
 
+  const handleAddPage = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/articles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: '新規記事',
+          parentId: itemId
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('記事の作成に失敗しました');
+      }
+
+      const data = await response.json();
+      // ページを更新（ツリーの再取得）
+      router.refresh();
+      // 新しく作成した記事の編集画面に遷移
+      router.push(`/articles/${data.article.id}/edit`);
+    } catch (error) {
+      console.error('Failed to create article:', error);
+      // エラー処理（必要に応じてトースト等で表示）
+    } finally {
+      setIsLoading(false);
+      handleMenuClose();
+    }
+  };
+
   return (
     <TreeItem2Provider itemId={itemId}>
       <TreeItem2Root {...getRootProps()}>
@@ -78,6 +113,7 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
             <IconButton
               size="small"
               onClick={handleMenuClick}
+              disabled={isLoading}
               sx={{ 
                 opacity: menuAnchorEl ? 1 : 0,
                 '&:hover': { opacity: 1 },
@@ -91,19 +127,22 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
               open={Boolean(menuAnchorEl)}
               onClose={handleMenuClose}
             >
-              <MenuItem onClick={() => {
-                console.log('Add page under:', itemId);
-                handleMenuClose();
-              }}>
+              <MenuItem 
+                onClick={handleAddPage}
+                disabled={isLoading}
+              >
                 <ListItemIcon>
                   <AddIcon fontSize="small" />
                 </ListItemIcon>
                 <ListItemText>ページを追加</ListItemText>
               </MenuItem>
-              <MenuItem onClick={() => {
-                console.log('Delete page:', itemId);
-                handleMenuClose();
-              }}>
+              <MenuItem 
+                onClick={() => {
+                  console.log('Delete page:', itemId);
+                  handleMenuClose();
+                }}
+                disabled={isLoading}
+              >
                 <ListItemIcon>
                   <DeleteIcon fontSize="small" />
                 </ListItemIcon>
