@@ -99,10 +99,15 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
     }
   };
 
+  // ContentPropsのクリックイベントを維持
+  const contentProps = {
+    ...getContentProps(),
+  };
+
   return (
     <TreeItem2Provider itemId={itemId}>
       <TreeItem2Root {...getRootProps()}>
-        <TreeItem2Content {...getContentProps()}>
+        <TreeItem2Content {...contentProps}>
           <TreeItem2IconContainer {...getIconContainerProps()}>
             <TreeItem2Icon status={status} />
           </TreeItem2IconContainer>
@@ -198,6 +203,28 @@ export default function SideNav() {
     };
   }, []);
 
+  const router = useRouter();
+
+  const handleItemClick = (event: React.MouseEvent, itemId: string) => {
+    // アイコンクリックの場合は何もしない（展開/折りたたみのデフォルト動作を維持）
+    const target = event.target as HTMLElement;
+    if (target.closest('.MuiTreeItem-iconContainer')) {
+      return;
+    }
+
+    // メニューボタンクリックの場合は何もしない
+    if (target.closest('.MuiIconButton-root')) {
+      return;
+    }
+    event.stopPropagation();
+    // それ以外の場合はページ遷移
+    if (itemId === 'root') {
+      router.push('/');
+    } else {
+      router.push(`/articles/${itemId}`);
+    }
+  };
+
   if (isLoading) {
     return <div>読み込み中...</div>;
   }
@@ -220,6 +247,7 @@ export default function SideNav() {
           />
         ),
       }}
+      onItemClick={handleItemClick}
       defaultExpandedItems={['root']}
       sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
     />
