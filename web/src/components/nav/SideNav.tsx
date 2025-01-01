@@ -42,7 +42,7 @@ function convertTreeNodesToItems(nodes: TreeNode[]): TreeItemType[] {
 }
 
 const CustomTreeItem = forwardRef(function CustomTreeItem(
-  { id, itemId, label, disabled, children }: TreeItem2Props,
+  { id, itemId, label, disabled, children, onTreeUpdate }: TreeItem2Props & { onTreeUpdate: () => Promise<void> },
   ref: React.Ref<HTMLLIElement>,
 ) {
   const router = useRouter();
@@ -86,13 +86,12 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
       }
 
       const data = await response.json();
-      // ページを更新（ツリーの再取得）
-      router.refresh();
+      // ペリーを更新
+      await onTreeUpdate();
       // 新しく作成した記事の編集画面に遷移
       router.push(`/articles/${data.article.id}/edit`);
     } catch (error) {
       console.error('Failed to create article:', error);
-      // エラー処理（必要に応じてトースト等で表示）
     } finally {
       setIsLoading(false);
       handleMenuClose();
@@ -161,27 +160,30 @@ export default function SideNav() {
   const [treeItems, setTreeItems] = useState<TreeItemType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updateTrigger, setUpdateTrigger] = useState(0);
 
-  useEffect(() => {
-    const fetchTree = async () => {
-      try {
-        const response = await fetch('/api/tree');
-        if (!response.ok) {
-          throw new Error('Failed to fetch tree');
-        }
-        const treeData: TreeStructure = await response.json();
-        const items = convertTreeNodesToItems(treeData.tree);
-        setTreeItems(items);
-      } catch (err) {
-        console.error('Failed to fetch tree:', err);
-        setError('ツリーの読み込みに失敗しました');
-      } finally {
-        setIsLoading(false);
+  const fetchTree = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/tree');
+      if (!response.ok) {
+        throw new Error('Failed to fetch tree');
       }
-    };
+      const treeData: TreeStructure = await response.json();
+      const items = convertTreeNodesToItems(treeData.tree);
+      setTreeItems(items);
+    } catch (err) {
+      console.error('Failed to fetch tree:', err);
+      setError('ツリーの読み込みに失敗しました');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // 初回読み込みとupdateTriggerの変更時にツリーを更新
+  useEffect(() => {
     fetchTree();
-  }, []);
+  }, [updateTrigger]);
 
   if (isLoading) {
     return <div>読み込み中...</div>;
@@ -194,7 +196,17 @@ export default function SideNav() {
   return (
     <RichTreeView
       items={treeItems}
-      slots={{ item: CustomTreeItem }}
+      slots={{
+        item: (props: TreeItem2Props) => (
+          <CustomTreeItem
+            {...props}
+            onTreeUpdate={async () => {
+              await fetchTree();
+              setUpdateTrigger(prev => prev + 1);
+            }}
+          />
+        ),
+      }}
       defaultExpandedItems={['root']}
       sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
     />
