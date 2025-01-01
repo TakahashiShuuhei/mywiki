@@ -84,11 +84,11 @@ export const TreeModel = {
   },
 
   // ページのタイトルを更新
-  async updateTitle(
+  updateTitle(
     id: string,
     newTitle: string,
     currentTree: TreeStructure
-  ): Promise<TreeStructure> {
+  ): TreeStructure {
     const updateTitleRecursive = (nodes: TreeNode[]): boolean => {
       for (const node of nodes) {
         if (node.id === id) {

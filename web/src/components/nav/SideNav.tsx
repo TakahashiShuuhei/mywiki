@@ -86,7 +86,7 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
       }
 
       const data = await response.json();
-      // ペリーを更新
+      // ツリーを更新
       await onTreeUpdate();
       // 新しく作成した記事の編集画面に遷移
       router.push(`/articles/${data.article.id}/edit`);

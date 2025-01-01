@@ -29,11 +29,41 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const transaction = datastore.transaction();
+
   try {
+    await transaction.run();
+
     const body = await request.json();
-    await ArticleModel.update((await params).id, body);
+    const articleId = (await params).id;
+
+    // 1. 記事の更新
+    const articleKey = datastore.key(['Article', articleId]);
+    transaction.save({
+      key: articleKey,
+      data: {
+        ...body,
+        updatedAt: new Date()
+      }
+    });
+
+    // 2. タイトルが変更された場合、ツリー構造も更新
+    if (body.title) {
+      const currentTree = await TreeModel.get();
+      const updatedTree = TreeModel.updateTitle(articleId, body.title, currentTree);
+      console.log('updatedTree', updatedTree);
+      transaction.save({
+        key: datastore.key(['System', 'tree']),
+        data: updatedTree
+      });
+    }
+
+    // トランザクションをコミット
+    await transaction.commit();
+
     return NextResponse.json({ success: true });
   } catch (error) {
+    await transaction.rollback();
     console.error('記事の更新に失敗:', error);
     return NextResponse.json(
       { error: '記事の更新に失敗しました' },
