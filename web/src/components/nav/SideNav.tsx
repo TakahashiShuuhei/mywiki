@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useState, MouseEvent } from 'react';
+import { forwardRef, useState, MouseEvent, useEffect } from 'react';
 import {
   IconButton,
   Menu,
@@ -24,6 +24,21 @@ import { useTreeItem2 } from '@mui/x-tree-view/useTreeItem2';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import type { TreeStructure, TreeNode } from '@/types/tree';
+
+type TreeItemType = {
+  id: string;
+  label: string;
+  children: TreeItemType[];
+}
+// TreeStructureのデータをRichTreeView用のアイテムに変換
+function convertTreeNodesToItems(nodes: TreeNode[]): TreeItemType[] {
+  return nodes.map(node => ({
+    id: node.id,
+    label: node.title,
+    children: node.children.length > 0 ? convertTreeNodesToItems(node.children) : []
+  }));
+}
 
 const CustomTreeItem = forwardRef(function CustomTreeItem(
   { id, itemId, label, disabled, children }: TreeItem2Props,
@@ -104,34 +119,44 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
 });
 
 export default function SideNav() {
-  const items = [
-    {
-      id: '1',
-      label: 'フロントエンド',
-      children: [
-        {
-          id: '2',
-          label: 'React',
-          children: []
-        },
-        {
-          id: '3',
-          label: 'Next.js',
-          children: []
+  const [treeItems, setTreeItems] = useState<TreeItemType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTree = async () => {
+      try {
+        const response = await fetch('/api/tree');
+        if (!response.ok) {
+          throw new Error('Failed to fetch tree');
         }
-      ]
-    },
-    {
-      id: '4',
-      label: 'バックエンド',
-      children: []
-    }
-  ];
+        const treeData: TreeStructure = await response.json();
+        const items = convertTreeNodesToItems(treeData.tree);
+        setTreeItems(items);
+      } catch (err) {
+        console.error('Failed to fetch tree:', err);
+        setError('ツリーの読み込みに失敗しました');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTree();
+  }, []);
+
+  if (isLoading) {
+    return <div>読み込み中...</div>;
+  }
+
+  if (error) {
+    return <div>エラー: {error}</div>;
+  }
 
   return (
     <RichTreeView
-      items={items}
+      items={treeItems}
       slots={{ item: CustomTreeItem }}
+      defaultExpandedItems={['root']}
       sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
     />
   );

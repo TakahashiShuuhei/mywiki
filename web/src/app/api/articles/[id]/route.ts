@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ArticleModel } from '@/models/article';
+import { datastore } from '@/lib/datastore/client';
+import { TreeModel } from '@/models/tree';
 
 export async function GET(
   request: NextRequest,
@@ -41,14 +43,57 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
+  const transaction = datastore.transaction();
+
   try {
-    await ArticleModel.delete((await params).id);
-    return NextResponse.json({ success: true });
+    await transaction.run();
+
+    // 1. 記事の存在確認
+    const articleKey = datastore.key(['Article', datastore.int(params.id)]);
+    const [article] = await transaction.get(articleKey);
+
+    if (!article) {
+      return NextResponse.json(
+        { error: '記事が見つかりません' },
+        { status: 404 }
+      );
+    }
+
+    // 2. 現在のツリー構造を取得
+    const currentTree = await TreeModel.get();
+
+    // 3. 削除対象の記事IDを全て取得（配下のページも含む）
+    const idsToDelete = TreeModel.getSubtreeIds(params.id, currentTree);
+
+    // 4. 全ての対象記事を削除
+    const keysToDelete = idsToDelete.map(id => 
+      datastore.key(['Article', datastore.int(id)])
+    );
+    transaction.delete(keysToDelete);
+
+    // 5. ツリー構造から記事を削除
+    const updatedTree = await TreeModel.removeSubtree(params.id, currentTree);
+
+    // 6. 更新されたツリーを保存
+    transaction.save({
+      key: datastore.key(['System', 'tree']),
+      data: updatedTree
+    });
+
+    // 7. トランザクションをコミット
+    await transaction.commit();
+
+    return NextResponse.json({ 
+      success: true,
+      deletedIds: idsToDelete 
+    });
+
   } catch (error) {
-    console.error('記事の削除に失敗:', error);
+    await transaction.rollback();
+    console.error('記事削除エラー:', error);
     return NextResponse.json(
       { error: '記事の削除に失敗しました' },
       { status: 500 }
