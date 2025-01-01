@@ -61,12 +61,12 @@ export const TreeModel = {
 
   // 指定したページとその配下を全て削除
   async removeSubtree(
-    id: string,
+    id: number,
     currentTree: TreeStructure
   ): Promise<TreeStructure> {
     const removeNodeRecursive = (nodes: TreeNode[]): TreeNode[] => {
       return nodes.filter(node => {
-        if (node.id === id) return false;
+        if (parseInt(node.id) === id) return false;
         if (node.children.length > 0) {
           node.children = removeNodeRecursive(node.children);
         }
@@ -183,13 +183,13 @@ export const TreeModel = {
   },
 
   // 指定したノードの配下にある全てのノードのIDを取得（自身も含む）
-  getSubtreeIds(id: string, currentTree: TreeStructure): string[] {
-    const ids: string[] = [];
+  getSubtreeIds(id: number, currentTree: TreeStructure): number[] {
+    const ids: number[] = [];
 
     const collectIds = (nodes: TreeNode[]) => {
       for (const node of nodes) {
-        if (node.id === id) {
-          ids.push(node.id);
+        if (parseInt(node.id) === id) {
+          ids.push(id);
           node.children.forEach(child => collectIds([child]));
           return true;
         }

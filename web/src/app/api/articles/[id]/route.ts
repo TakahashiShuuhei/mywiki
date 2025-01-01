@@ -8,14 +8,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const article = await ArticleModel.get((await params).id);
+    const article = await ArticleModel.get(parseInt((await params).id));
     if (!article) {
       return NextResponse.json(
         { error: '記事が見つかりません' },
         { status: 404 }
       );
     }
-    return NextResponse.json({ data: article });
+    return NextResponse.json(article);
   } catch (error) {
     console.error('記事の取得に失敗:', error);
     return NextResponse.json(
@@ -44,7 +44,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const transaction = datastore.transaction();
 
@@ -52,7 +52,7 @@ export async function DELETE(
     await transaction.run();
 
     // 1. 記事の存在確認
-    const articleKey = datastore.key(['Article', datastore.int(params.id)]);
+    const articleKey = datastore.key(['Article', parseInt((await params).id)]);
     const [article] = await transaction.get(articleKey);
 
     if (!article) {
@@ -66,7 +66,7 @@ export async function DELETE(
     const currentTree = await TreeModel.get();
 
     // 3. 削除対象の記事IDを全て取得（配下のページも含む）
-    const idsToDelete = TreeModel.getSubtreeIds(params.id, currentTree);
+    const idsToDelete = TreeModel.getSubtreeIds(parseInt((await params).id), currentTree);
 
     // 4. 全ての対象記事を削除
     const keysToDelete = idsToDelete.map(id => 
@@ -75,7 +75,7 @@ export async function DELETE(
     transaction.delete(keysToDelete);
 
     // 5. ツリー構造から記事を削除
-    const updatedTree = await TreeModel.removeSubtree(params.id, currentTree);
+    const updatedTree = await TreeModel.removeSubtree(parseInt((await params).id), currentTree);
 
     // 6. 更新されたツリーを保存
     transaction.save({
