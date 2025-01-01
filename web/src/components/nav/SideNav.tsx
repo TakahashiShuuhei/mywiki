@@ -26,6 +26,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { TreeStructure, TreeNode } from '@/types/tree';
 import { useRouter } from 'next/navigation';
+import { TREE_UPDATE_EVENT } from '@/events/treeEvents';
 
 type TreeItemType = {
   id: string;
@@ -184,6 +185,18 @@ export default function SideNav() {
   useEffect(() => {
     fetchTree();
   }, [updateTrigger]);
+
+  // ツリー更新イベントのリスナーを追加
+  useEffect(() => {
+    const handleTreeUpdate = () => {
+      setUpdateTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener(TREE_UPDATE_EVENT, handleTreeUpdate);
+    return () => {
+      window.removeEventListener(TREE_UPDATE_EVENT, handleTreeUpdate);
+    };
+  }, []);
 
   if (isLoading) {
     return <div>読み込み中...</div>;

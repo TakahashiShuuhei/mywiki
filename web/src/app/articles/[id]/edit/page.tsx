@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { triggerTreeUpdate } from '@/events/treeEvents';
 import { 
   Box, 
   TextField, 
@@ -59,6 +60,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
         throw new Error('記事の更新に失敗しました');
       }
 
+      triggerTreeUpdate();
       router.push(`/articles/${(await params).id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '記事の更新に失敗しました');
