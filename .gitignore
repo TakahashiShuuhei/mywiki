@@ -29,7 +29,6 @@ coverage/
 !.env.example
 
 # GCP関連
-.gcloudignore
 *.log
 firebase-debug.log*
 firebase-debug.*.log*
