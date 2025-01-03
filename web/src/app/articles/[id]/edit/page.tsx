@@ -1,38 +1,37 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { triggerTreeUpdate } from '@/events/treeEvents';
-import { 
-  Box, 
-  TextField, 
-  Button, 
-  CircularProgress,
+import {
+  Box,
+  TextField,
+  Button,
   Stack,
-  Typography 
+  CircularProgress,
+  Typography
 } from '@mui/material';
-
-interface Article {
-  id: string;
-  title: string;
-  content: string;
-}
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 export default function ArticleEditPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
-  const [article, setArticle] = useState<Article | null>(null);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const response = await fetch(`/api/articles/${(await params).id}`);
+        const response = await fetch(`/api/articles/${id}`);
         if (!response.ok) {
           throw new Error('記事の取得に失敗しました');
         }
         const data = await response.json();
-        setArticle(data);
+        setTitle(data.title);
+        setContent(data.content);
       } catch (err) {
         setError(err instanceof Error ? err.message : '記事の取得に失敗しました');
       } finally {
@@ -41,30 +40,32 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
     };
 
     fetchArticle();
-  }, [params]);
+  }, [id]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!article) return;
-
+  const handleSave = async () => {
     try {
-      const response = await fetch(`/api/articles/${(await params).id}`, {
+      setIsSaving(true);
+      const response = await fetch(`/api/articles/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(article),
+        body: JSON.stringify({ title, content }),
       });
 
       if (!response.ok) {
-        throw new Error('記事の更新に失敗しました');
+        throw new Error('記事の保存に失敗しました');
       }
 
-      triggerTreeUpdate();
-      router.push(`/articles/${(await params).id}`);
+      router.push(`/articles/${id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '記事の更新に失敗しました');
+      setError(err instanceof Error ? err.message : '記事の保存に失敗しました');
+      setIsSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    router.push(`/articles/${id}`);
   };
 
   if (isLoading) {
@@ -75,28 +76,62 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
     return <Typography color="error">{error}</Typography>;
   }
 
-  if (!article) {
-    return <Typography>記事が見つかりません</Typography>;
-  }
-
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ p: 2 }}>
-      <Stack spacing={2}>
-        <TextField
-          label="タイトル"
-          value={article.title}
-          onChange={(e) => setArticle({ ...article, title: e.target.value })}
-          fullWidth
-        />
-        <TextField
-          label="本文"
-          value={article.content}
-          onChange={(e) => setArticle({ ...article, content: e.target.value })}
-          multiline
-          rows={10}
-          fullWidth
-        />
-        <Button type="submit" variant="contained">
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: 'calc(100vh - 100px)', // AppBarとパディングを考慮
+      gap: 2,
+      p: 2 
+    }}>
+      <TextField
+        label="タイトル"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        fullWidth
+        variant="outlined"
+        sx={{ mb: 2 }}
+      />
+
+      <TextField
+        label="本文"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        multiline
+        fullWidth
+        variant="outlined"
+        sx={{ 
+          flex: 1,
+          '& .MuiInputBase-root': {
+            height: '100%',
+          },
+          '& .MuiInputBase-input': {
+            height: '100% !important',
+            overflow: 'auto !important',
+          },
+        }}
+      />
+
+      <Stack 
+        direction="row" 
+        spacing={2} 
+        justifyContent="flex-end"
+        sx={{ mt: 2 }}
+      >
+        <Button
+          variant="outlined"
+          onClick={handleCancel}
+          startIcon={<CancelIcon />}
+          disabled={isSaving}
+        >
+          キャンセル
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          startIcon={<SaveIcon />}
+          disabled={isSaving}
+        >
           保存
         </Button>
       </Stack>
