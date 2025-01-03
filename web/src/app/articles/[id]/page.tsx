@@ -389,16 +389,18 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
   return (
     <Box sx={{ p: 2 }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <Typography variant="h4" component="h1">
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Typography variant="h4" component="h1" sx={{ mr: 2 }}>
           {article.title}
         </Typography>
-        <IconButton onClick={handleEditClick} aria-label="記事を編集" size="small">
-          <EditIcon />
-        </IconButton>
-        <IconButton onClick={handleMenuOpen} aria-label="その他の操作" size="small">
-          <MoreVertIcon />
-        </IconButton>
+        <Stack direction="row" spacing={1}>
+          <IconButton onClick={handleEditClick} aria-label="記事を編集" size="small">
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={handleMenuOpen} aria-label="その他の操作" size="small">
+            <MoreVertIcon />
+          </IconButton>
+        </Stack>
       </Stack>
 
       {/* メニュー */}

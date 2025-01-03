@@ -1,7 +1,16 @@
 'use client';
 
 import { forwardRef, useState, MouseEvent, useEffect } from 'react';
-import { IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Stack } from '@mui/material';
+import {
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  CircularProgress,
+  Box,
+} from '@mui/material';
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
 import {
   TreeItem2Content,
@@ -269,7 +278,18 @@ export default function SideNav() {
   };
 
   if (isLoading) {
-    return <div>読み込み中...</div>;
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: 200, // または適切な高さ
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
