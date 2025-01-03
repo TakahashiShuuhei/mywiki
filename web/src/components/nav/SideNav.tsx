@@ -302,7 +302,7 @@ export default function SideNav() {
       selectedItems={selectedItem}
       onExpandedItemsChange={(event, ids) => setExpandedItems(ids)}
       onItemClick={handleItemClick}
-      sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
+      sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto', padding: '10px' }}
     />
   );
 }

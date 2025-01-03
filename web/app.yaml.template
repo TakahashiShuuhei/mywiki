@@ -2,6 +2,10 @@ runtime: nodejs22
 
 service: mywiki
 
+env_variables:
+  BASIC_AUTH_USER: "${BASIC_AUTH_USER}"
+  BASIC_AUTH_PASSWORD: "${BASIC_AUTH_PASSWORD}"
+
 handlers:
   - url: /.*
     secure: always
