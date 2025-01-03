@@ -16,9 +16,6 @@ import {
   ListItemText,
   Collapse,
   Grid,
-  Card,
-  CardContent,
-  CardHeader,
   Link,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -30,7 +27,6 @@ import rehypeSanitize from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github.css';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { styled } from '@mui/material/styles';
 
 interface Article {
   id: string;
@@ -44,23 +40,6 @@ interface AttachedFile {
   name: string;
   url: string;
 }
-
-// 回転するアイコンボタンのスタイル
-const ExpandMore = styled((props: {
-  expand: boolean;
-  onClick: () => void;
-  'aria-expanded': boolean;
-  'aria-label': string;
-}) => {
-  const { expand, ...other } = props;
-  return <IconButton {...other} />;
-})(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
-}));
 
 export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -99,10 +78,6 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
   const handleEditClick = async () => {
     router.push(`/articles/${(await params).id}/edit`);
-  };
-
-  const handleExpandClick = () => {
-    setExpanded(!expanded);
   };
 
   if (isLoading) {
@@ -221,81 +196,78 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         <Divider sx={{ my: 3 }} />
 
         {/* メタ情報 */}
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           {/* 日時情報 */}
-          <Grid item xs={12} md={6}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  作成日時
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  {formatDate(article.createdAt)}
-                </Typography>
-                
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  更新日時
-                </Typography>
-                <Typography variant="body1">
-                  {formatDate(article.updatedAt)}
-                </Typography>
-              </CardContent>
-            </Card>
+          <Grid xs={12} md={6}>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                作成日時
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                {formatDate(article.createdAt)}
+              </Typography>
+              
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                更新日時
+              </Typography>
+              <Typography variant="body1">
+                {formatDate(article.updatedAt)}
+              </Typography>
+            </Box>
           </Grid>
 
           {/* 添付ファイル */}
-          <Grid item xs={12} md={6}>
-            <Card variant="outlined">
-              <CardHeader
-                title="添付ファイル"
-                titleTypography={{ variant: 'subtitle1' }}
-                action={
-                  attachedFiles.length > 0 && (
-                    <IconButton
-                      onClick={() => setExpanded(!expanded)}
-                      aria-expanded={expanded}
-                      aria-label="添付ファイルを表示"
-                      sx={{
-                        transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s',
-                      }}
-                    >
-                      <ExpandMoreIcon />
-                    </IconButton>
-                  )
-                }
-              />
+          <Grid xs={12} md={6}>
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  添付ファイル
+                </Typography>
+                {attachedFiles.length > 0 && (
+                  <IconButton
+                    onClick={() => setExpanded(!expanded)}
+                    aria-expanded={expanded}
+                    aria-label="添付ファイルを表示"
+                    size="small"
+                    sx={{
+                      ml: 1,
+                      transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s',
+                    }}
+                  >
+                    <ExpandMoreIcon />
+                  </IconButton>
+                )}
+              </Box>
               <Collapse in={expanded} timeout="auto" unmountOnExit>
-                <CardContent>
-                  {attachedFiles.length > 0 ? (
-                    <List dense disablePadding>
-                      {attachedFiles.map((file) => (
-                        <ListItem key={file.name} disablePadding>
-                          <ListItemIcon>
-                            <AttachFileIcon fontSize="small" />
-                          </ListItemIcon>
-                          <ListItemText>
-                            <Link
-                              href={file.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              color="primary"
-                              underline="hover"
-                            >
-                              {file.name}
-                            </Link>
-                          </ListItemText>
-                        </ListItem>
-                      ))}
-                    </List>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      添付ファイルはありません
-                    </Typography>
-                  )}
-                </CardContent>
+                {attachedFiles.length > 0 ? (
+                  <List dense disablePadding>
+                    {attachedFiles.map((file) => (
+                      <ListItem key={file.name} disablePadding>
+                        <ListItemIcon>
+                          <AttachFileIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>
+                          <Link
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            color="primary"
+                            underline="hover"
+                          >
+                            {file.name}
+                          </Link>
+                        </ListItemText>
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    添付ファイルはありません
+                  </Typography>
+                )}
               </Collapse>
-            </Card>
+            </Box>
           </Grid>
         </Grid>
       </Paper>
