@@ -213,6 +213,10 @@ export default function SideNav() {
       return;
     }
 
+    if (target.closest('.MuiSvgIcon-root')) {
+      return;
+    }
+
     // アイコンクリックの場合は何もしない（expansionTriggerで制御）
     if (target.closest('.MuiTreeItem-iconContainer')) {
       return;
