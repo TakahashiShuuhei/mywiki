@@ -71,14 +71,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <SideNav />
       </Drawer>
 
-      {/* メインコンテンツ */}
+      {/* メインコンテンツ  TODO : サイドナビゲーション非表示時の左の空白 */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
           mt: '64px',
-          ml: isDrawerOpen ? `${DRAWER_WIDTH}px` : 0,
           transition: theme => theme.transitions.create('margin', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
