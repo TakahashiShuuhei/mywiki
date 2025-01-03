@@ -120,7 +120,7 @@ function MoveDialog({
   // 指定したノードの子孫ノードIDを全て取得する関数
   const getDescendantIds = (nodes: TreeNode[], targetId: string): string[] => {
     const descendants: string[] = [];
-    
+
     const traverse = (nodes: TreeNode[]) => {
       for (const node of nodes) {
         if (node.id === targetId) {
@@ -158,7 +158,7 @@ function MoveDialog({
             <MenuItem
               key={node.id}
               disabled
-              sx={{ 
+              sx={{
                 pl: level * 4,
                 opacity: 0.5,
               }}
@@ -175,11 +175,11 @@ function MoveDialog({
           <MenuItem
             onClick={() => handleSelect(node.id)}
             selected={node.id === selectedNodeId}
-            sx={{ 
+            sx={{
               pl: level * 4,
               '&.Mui-selected': {
                 backgroundColor: 'action.selected',
-              }
+              },
             }}
           >
             <ListItemText primary={node.title} />
