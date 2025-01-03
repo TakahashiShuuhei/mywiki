@@ -9,10 +9,7 @@ export async function GET() {
     return NextResponse.json({ data: articles });
   } catch (error) {
     console.error('記事一覧の取得に失敗:', error);
-    return NextResponse.json(
-      { error: '記事一覧の取得に失敗しました' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '記事一覧の取得に失敗しました' }, { status: 500 });
   }
 }
 
@@ -33,29 +30,24 @@ export async function POST(request: Request) {
       content: '',
       status: 'draft',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     transaction.save({
       key: articleKey,
-      data: article
+      data: article,
     });
 
     // 3. 現在のツリー構造を取得
     const currentTree = await TreeModel.get();
 
     // 4. ツリー構造を更新
-    const updatedTree = await TreeModel.addChild(
-      parentId,
-      tempId,
-      title,
-      currentTree
-    );
+    const updatedTree = await TreeModel.addChild(parentId, tempId, title, currentTree);
 
     // 5. 更新されたツリーを保存
     transaction.save({
       key: datastore.key(['System', 'tree']),
-      data: updatedTree
+      data: updatedTree,
     });
 
     // 6. トランザクションをコミット
@@ -65,17 +57,13 @@ export async function POST(request: Request) {
     return NextResponse.json({
       article: {
         id: tempId,
-        ...article
+        ...article,
       },
-      tree: updatedTree
+      tree: updatedTree,
     });
-
   } catch (error) {
     await transaction.rollback();
     console.error('記事作成エラー:', error);
-    return NextResponse.json(
-      { error: '記事の作成に失敗しました' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '記事の作成に失敗しました' }, { status: 500 });
   }
 }

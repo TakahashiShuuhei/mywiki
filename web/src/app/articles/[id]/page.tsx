@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Box, 
-  Typography, 
+import {
+  Box,
+  Typography,
   CircularProgress,
   IconButton,
   Stack,
@@ -98,88 +98,67 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
   return (
     <Box sx={{ p: 2 }}>
-      <Stack 
-        direction="row" 
-        alignItems="center" 
-        spacing={1} 
-        sx={{ mb: 2 }}
-      >
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
         <Typography variant="h4" component="h1">
           {article.title}
         </Typography>
-        <IconButton 
-          onClick={handleEditClick}
-          aria-label="記事を編集"
-          size="small"
-        >
+        <IconButton onClick={handleEditClick} aria-label="記事を編集" size="small">
           <EditIcon />
         </IconButton>
       </Stack>
 
-      <Paper 
-        elevation={0} 
-        sx={{ 
+      <Paper
+        elevation={0}
+        sx={{
           p: 3,
           backgroundColor: 'background.default',
           '& img': {
             maxWidth: '100%',
-            height: 'auto'
+            height: 'auto',
           },
           '& pre': {
             p: 2,
             borderRadius: 1,
             overflow: 'auto',
-            backgroundColor: 'grey.100'
+            backgroundColor: 'grey.100',
           },
           '& code': {
             fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
           },
           '& table': {
             borderCollapse: 'collapse',
             width: '100%',
-            mb: 2
+            mb: 2,
           },
           '& th, & td': {
             border: '1px solid',
             borderColor: 'grey.300',
-            p: 1
+            p: 1,
           },
           '& blockquote': {
             borderLeft: 4,
             borderColor: 'grey.300',
             pl: 2,
             ml: 0,
-            my: 2
-          }
+            my: 2,
+          },
         }}
       >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[
-            rehypeRaw,
-            rehypeSanitize,
-            rehypeHighlight
-          ]}
+          rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
           components={{
-            h1: ({ ...props }) => (
-              <Typography variant="h4" gutterBottom {...props} />
-            ),
-            h2: ({ ...props }) => (
-              <Typography variant="h5" gutterBottom {...props} />
-            ),
-            h3: ({ ...props }) => (
-              <Typography variant="h6" gutterBottom {...props} />
-            ),
-            p: ({ ...props }) => (
-              <Typography paragraph {...props} />
-            ),
+            h1: ({ ...props }) => <Typography variant="h4" gutterBottom {...props} />,
+            h2: ({ ...props }) => <Typography variant="h5" gutterBottom {...props} />,
+            h3: ({ ...props }) => <Typography variant="h6" gutterBottom {...props} />,
+            p: ({ ...props }) => <Typography paragraph {...props} />,
             a: ({ ...props }) => (
               <Typography
                 component="a"
@@ -206,13 +185,11 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
               <Typography variant="body1" sx={{ mb: 2 }}>
                 {formatDate(article.createdAt)}
               </Typography>
-              
+
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                 更新日時
               </Typography>
-              <Typography variant="body1">
-                {formatDate(article.updatedAt)}
-              </Typography>
+              <Typography variant="body1">{formatDate(article.updatedAt)}</Typography>
             </Box>
           </Grid>
 

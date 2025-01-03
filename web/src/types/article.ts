@@ -9,4 +9,4 @@ export interface Article {
 
 export type ArticleKey = {
   id: string;
-}
+};

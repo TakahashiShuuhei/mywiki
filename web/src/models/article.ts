@@ -8,27 +8,24 @@ export const ArticleModel = {
   async get(id: string): Promise<Article | null> {
     const key = datastore.key([KIND, id]);
     const [entity] = await datastore.get(key);
-    
+
     if (!entity) return null;
-    
+
     return {
       id: entity[datastore.KEY].name,
-      ...entity
+      ...entity,
     };
   },
 
   // 記事一覧の取得
   async list(limit = 10): Promise<Article[]> {
-    const query = datastore
-      .createQuery(KIND)
-      .order('createdAt', { descending: true })
-      .limit(limit);
-    
+    const query = datastore.createQuery(KIND).order('createdAt', { descending: true }).limit(limit);
+
     const [entities] = await datastore.runQuery(query);
 
-    return entities.map(entity => ({
+    return entities.map((entity) => ({
       id: entity[datastore.KEY].name,
-      ...entity
+      ...entity,
     }));
   },
 
@@ -36,7 +33,7 @@ export const ArticleModel = {
   async create(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>): Promise<ArticleKey> {
     const key = datastore.key([KIND]);
     const now = new Date();
-    
+
     const entity = {
       key,
       data: {
@@ -70,5 +67,5 @@ export const ArticleModel = {
   async delete(id: string): Promise<void> {
     const key = datastore.key([KIND, id]);
     await datastore.delete(key);
-  }
+  },
 };

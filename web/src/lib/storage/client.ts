@@ -42,10 +42,10 @@ export class StorageClient {
 
     try {
       await blob.save(file, options);
-      
+
       return {
         url: `${BASE_URL}/${filePath}`,
-        path: filePath
+        path: filePath,
       };
     } catch (error) {
       console.error('File upload failed:', error);
@@ -62,9 +62,9 @@ export class StorageClient {
       prefix: `${articleId}/`,
     });
 
-    return files.map(file => ({
+    return files.map((file) => ({
       name: path.basename(file.name),
-      url: `${BASE_URL}/${file.name}`
+      url: `${BASE_URL}/${file.name}`,
     }));
   }
 
@@ -93,7 +93,7 @@ export class StorageClient {
       prefix: `${articleId}/`,
     });
 
-    await Promise.all(files.map(file => file.delete()));
+    await Promise.all(files.map((file) => file.delete()));
   }
 }
 

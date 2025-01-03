@@ -19,22 +19,17 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       {/* ヘッダー */}
-      <AppBar 
-        position="fixed" 
-        sx={{ 
+      <AppBar
+        position="fixed"
+        sx={{
           zIndex: 2000,
-          backgroundColor: 'background.paper',  // 白背景
-          color: 'text.primary',               // テキストを通常の色に
-          boxShadow: 1                         // より軽いシャドウ
+          backgroundColor: 'background.paper', // 白背景
+          color: 'text.primary', // テキストを通常の色に
+          boxShadow: 1, // より軽いシャドウ
         }}
       >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            onClick={toggleDrawer}
-            edge="start"
-            sx={{ mr: 2 }}
-          >
+          <IconButton color="inherit" onClick={toggleDrawer} edge="start" sx={{ mr: 2 }}>
             <MenuIcon />
           </IconButton>
 
@@ -78,10 +73,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           flexGrow: 1,
           p: 3,
           mt: '64px',
-          transition: theme => theme.transitions.create('margin', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
+          transition: (theme) =>
+            theme.transitions.create('margin', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
         }}
       >
         {children}

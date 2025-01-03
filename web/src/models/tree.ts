@@ -9,15 +9,17 @@ export const TreeModel = {
     const [entity] = await datastore.get(datastore.key(TREE_KEY));
     // 初期状態を定義
     const initialTree: TreeStructure = {
-      tree: [{
-        id: ROOT_NODE_ID,
-        title: 'ホーム',
-        children: []
-      }],
+      tree: [
+        {
+          id: ROOT_NODE_ID,
+          title: 'ホーム',
+          children: [],
+        },
+      ],
       version: 0,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
-    
+
     return entity || initialTree;
   },
 
@@ -49,7 +51,7 @@ export const TreeModel = {
     const updatedTree = {
       tree: [...currentTree.tree],
       version: currentTree.version + 1,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     if (!addChildNode(updatedTree.tree)) {
@@ -60,12 +62,9 @@ export const TreeModel = {
   },
 
   // 指定したページとその配下を全て削除
-  async removeSubtree(
-    id: string,
-    currentTree: TreeStructure
-  ): Promise<TreeStructure> {
+  async removeSubtree(id: string, currentTree: TreeStructure): Promise<TreeStructure> {
     const removeNodeRecursive = (nodes: TreeNode[]): TreeNode[] => {
-      return nodes.filter(node => {
+      return nodes.filter((node) => {
         if (node.id === id) return false;
         if (node.children.length > 0) {
           node.children = removeNodeRecursive(node.children);
@@ -77,18 +76,14 @@ export const TreeModel = {
     const updatedTree = {
       tree: removeNodeRecursive([...currentTree.tree]),
       version: currentTree.version + 1,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     return updatedTree;
   },
 
   // ページのタイトルを更新
-  updateTitle(
-    id: string,
-    newTitle: string,
-    currentTree: TreeStructure
-  ): TreeStructure {
+  updateTitle(id: string, newTitle: string, currentTree: TreeStructure): TreeStructure {
     const updateTitleRecursive = (nodes: TreeNode[]): boolean => {
       for (const node of nodes) {
         if (node.id === id) {
@@ -105,7 +100,7 @@ export const TreeModel = {
     const updatedTree = {
       tree: [...currentTree.tree],
       version: currentTree.version + 1,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     if (!updateTitleRecursive(updatedTree.tree)) {
@@ -126,7 +121,7 @@ export const TreeModel = {
 
     // ノードを見つけて削除
     const removeNode = (nodes: TreeNode[]): TreeNode[] => {
-      return nodes.filter(node => {
+      return nodes.filter((node) => {
         if (node.id === nodeId) {
           nodeToMove = { ...node };
           return false;
@@ -141,7 +136,7 @@ export const TreeModel = {
     const updatedTree = {
       tree: removeNode([...currentTree.tree]),
       version: currentTree.version + 1,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     if (!nodeToMove) {
@@ -190,7 +185,7 @@ export const TreeModel = {
       for (const node of nodes) {
         if (node.id === id) {
           ids.push(id);
-          node.children.forEach(child => collectIds([child]));
+          node.children.forEach((child) => collectIds([child]));
           return true;
         }
         if (node.children.length > 0 && collectIds(node.children)) {

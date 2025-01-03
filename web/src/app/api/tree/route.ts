@@ -7,9 +7,6 @@ export async function GET() {
     return NextResponse.json(tree);
   } catch (error) {
     console.error('Failed to fetch tree:', error);
-    return NextResponse.json(
-      { error: 'ツリーの取得に失敗しました' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'ツリーの取得に失敗しました' }, { status: 500 });
   }
 }

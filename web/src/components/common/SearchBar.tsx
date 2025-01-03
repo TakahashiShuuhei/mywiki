@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { InputBase, Box, alpha } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -9,9 +9,9 @@ export default function SearchBar() {
       sx={{
         position: 'relative',
         borderRadius: 1,
-        backgroundColor: theme => alpha(theme.palette.grey[200], 0.5),
+        backgroundColor: (theme) => alpha(theme.palette.grey[200], 0.5),
         '&:hover': {
-          backgroundColor: theme => alpha(theme.palette.grey[200], 0.8),
+          backgroundColor: (theme) => alpha(theme.palette.grey[200], 0.8),
         },
         width: '100%',
         maxWidth: 400,

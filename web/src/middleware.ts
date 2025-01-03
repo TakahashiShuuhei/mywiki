@@ -9,10 +9,7 @@ export function middleware(request: NextRequest) {
     const [user, pwd] = atob(authValue).split(':');
 
     // 環境変数から認証情報を取得
-    if (
-      user === process.env.BASIC_AUTH_USER &&
-      pwd === process.env.BASIC_AUTH_PASSWORD
-    ) {
+    if (user === process.env.BASIC_AUTH_USER && pwd === process.env.BASIC_AUTH_PASSWORD) {
       return NextResponse.next();
     }
   }

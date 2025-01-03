@@ -1,14 +1,7 @@
-"use client";
+'use client';
 
 import { forwardRef, useState, MouseEvent, useEffect } from 'react';
-import {
-  IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Stack,
-} from '@mui/material';
+import { IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Stack } from '@mui/material';
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
 import {
   TreeItem2Content,
@@ -32,19 +25,26 @@ type TreeItemType = {
   id: string;
   label: string;
   children: TreeItemType[];
-}
+};
 // TreeStructureのデータをRichTreeView用のアイテムに変換
 function convertTreeNodesToItems(nodes: TreeNode[]): TreeItemType[] {
-  return nodes.map(node => ({
+  return nodes.map((node) => ({
     id: node.id,
     label: node.title,
-    children: node.children.length > 0 ? convertTreeNodesToItems(node.children) : []
+    children: node.children.length > 0 ? convertTreeNodesToItems(node.children) : [],
   }));
 }
 
 const CustomTreeItem = forwardRef(function CustomTreeItem(
-  { id, itemId, label, disabled, children, onTreeUpdate }: TreeItem2Props & { onTreeUpdate: () => Promise<void> },
-  ref: React.Ref<HTMLLIElement>,
+  {
+    id,
+    itemId,
+    label,
+    disabled,
+    children,
+    onTreeUpdate,
+  }: TreeItem2Props & { onTreeUpdate: () => Promise<void> },
+  ref: React.Ref<HTMLLIElement>
 ) {
   const router = useRouter();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
@@ -78,7 +78,7 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
         },
         body: JSON.stringify({
           title: '新規記事',
-          parentId: itemId
+          parentId: itemId,
         }),
       });
 
@@ -119,29 +119,22 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
               size="small"
               onClick={handleMenuClick}
               disabled={isLoading}
-              sx={{ 
+              sx={{
                 opacity: menuAnchorEl ? 1 : 0,
                 '&:hover': { opacity: 1 },
-                '.MuiTreeItem-content:hover &': { opacity: 1 }
+                '.MuiTreeItem-content:hover &': { opacity: 1 },
               }}
             >
               <MoreVertIcon fontSize="small" />
             </IconButton>
-            <Menu
-              anchorEl={menuAnchorEl}
-              open={Boolean(menuAnchorEl)}
-              onClose={handleMenuClose}
-            >
-              <MenuItem 
-                onClick={handleAddPage}
-                disabled={isLoading}
-              >
+            <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose}>
+              <MenuItem onClick={handleAddPage} disabled={isLoading}>
                 <ListItemIcon>
                   <AddIcon fontSize="small" />
                 </ListItemIcon>
                 <ListItemText>ページを追加</ListItemText>
               </MenuItem>
-              <MenuItem 
+              <MenuItem
                 onClick={() => {
                   console.log('Delete page:', itemId);
                   handleMenuClose();
@@ -181,12 +174,12 @@ export default function SideNav() {
         for (const item of currentItems) {
           // 現在のパスに現在の項目のIDを追加
           const newPath = [...currentPath, item.id];
-          
+
           // 目的のIDが見つかった場合はパスを返す
           if (item.id === target) {
             return newPath;
           }
-          
+
           // 子要素がある場合は再帰的に探索
           if (item.children && item.children.length > 0) {
             const result = find(item.children, target, newPath);
@@ -195,10 +188,10 @@ export default function SideNav() {
             }
           }
         }
-        
+
         return null;
       };
-    
+
       return find(items, targetId);
     }
     const match = pathname.match(/\/articles\/([^\/]+)/);
@@ -240,7 +233,7 @@ export default function SideNav() {
   // ツリー更新イベントのリスナーを追加
   useEffect(() => {
     const handleTreeUpdate = () => {
-      setUpdateTrigger(prev => prev + 1);
+      setUpdateTrigger((prev) => prev + 1);
     };
 
     window.addEventListener(TREE_UPDATE_EVENT, handleTreeUpdate);
@@ -292,7 +285,7 @@ export default function SideNav() {
             {...props}
             onTreeUpdate={async () => {
               await fetchTree();
-              setUpdateTrigger(prev => prev + 1);
+              setUpdateTrigger((prev) => prev + 1);
             }}
           />
         ),

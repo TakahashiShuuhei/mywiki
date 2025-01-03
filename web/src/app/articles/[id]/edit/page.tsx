@@ -1,15 +1,8 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Box,
-  TextField,
-  Button,
-  Stack,
-  CircularProgress,
-  Typography
-} from '@mui/material';
+import { Box, TextField, Button, Stack, CircularProgress, Typography } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { triggerTreeUpdate } from '@/events/treeEvents';
@@ -80,11 +73,9 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    
-    const newContent = content.substring(0, start) + 
-      textToInsert + 
-      content.substring(end);
-    
+
+    const newContent = content.substring(0, start) + textToInsert + content.substring(end);
+
     setContent(newContent);
 
     // カーソル位置を挿入したテキストの後ろに移動
@@ -113,7 +104,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
     setIsDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-    
+
     try {
       for (const file of files) {
         const formData = new FormData();
@@ -208,7 +199,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
         multiline
         fullWidth
         variant="outlined"
-        sx={{ 
+        sx={{
           flex: 1,
           '& .MuiInputBase-root': {
             height: '100%',
@@ -220,12 +211,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
         }}
       />
 
-      <Stack 
-        direction="row" 
-        spacing={2} 
-        justifyContent="flex-end"
-        sx={{ mt: 2 }}
-      >
+      <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
         <Button
           variant="outlined"
           onClick={handleCancel}

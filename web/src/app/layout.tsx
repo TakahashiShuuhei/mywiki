@@ -4,20 +4,14 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/lib/theme';
 import MainLayout from '@/components/layout/MainLayout';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja">
       <body>
         <AppRouterCacheProvider options={{ key: 'mui' }}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <MainLayout>
-              {children}
-            </MainLayout>
+            <MainLayout>{children}</MainLayout>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>
