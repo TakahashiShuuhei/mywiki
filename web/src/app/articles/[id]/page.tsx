@@ -37,6 +37,7 @@ import 'highlight.js/styles/github.css';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { TreeNode } from '@/types/tree';
 import { triggerTreeUpdate } from '@/events/treeEvents';
 
@@ -219,6 +220,53 @@ function MoveDialog({
   );
 }
 
+// 削除確認ダイアログのコンポーネント
+function DeleteConfirmDialog({
+  open,
+  onClose,
+  onConfirm,
+  isDeleting
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+  isDeleting: boolean;
+}) {
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      disableEscapeKeyDown={isDeleting}
+    >
+      <DialogTitle>記事の削除</DialogTitle>
+      <DialogContent>
+        <Typography>
+          この記事とすべての子記事が削除されます。この操作は取り消せません。
+          削除してもよろしいですか？
+        </Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={onClose}
+          disabled={isDeleting}
+        >
+          キャンセル
+        </Button>
+        <LoadingButton
+          onClick={onConfirm}
+          loading={isDeleting}
+          color="error"
+          variant="contained"
+        >
+          削除
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
@@ -229,6 +277,8 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [currentId, setCurrentId] = useState<string>('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchId = async () => {
@@ -299,6 +349,36 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
     }
   };
 
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const response = await fetch(`/api/articles/${currentId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('記事の削除に失敗しました');
+      }
+
+      // 削除成功後、一覧ページに戻る
+      router.push('/');
+      
+      // ツリー更新イベントを発火
+      triggerTreeUpdate();
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      // エラー処理
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
   if (isLoading) {
     return <CircularProgress />;
   }
@@ -348,6 +428,12 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           </ListItemIcon>
           <ListItemText>移動</ListItemText>
         </MenuItem>
+        <MenuItem onClick={handleDeleteClick}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText sx={{ color: 'error.main' }}>削除</ListItemText>
+        </MenuItem>
       </Menu>
 
       {/* 移動ダイアログ */}
@@ -356,6 +442,14 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         onClose={() => setMoveDialogOpen(false)}
         onMove={handleMoveArticle}
         currentId={currentId}
+      />
+
+      {/* 削除確認ダイアログ */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
       />
 
       <Paper

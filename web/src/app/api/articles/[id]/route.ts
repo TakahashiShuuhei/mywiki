@@ -64,7 +64,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     await transaction.run();
 
     // 1. 記事の存在確認
-    const articleKey = datastore.key(['Article', parseInt((await params).id)]);
+    const articleKey = datastore.key(['Article', (await params).id]);
     const [article] = await transaction.get(articleKey);
 
     if (!article) {
@@ -78,7 +78,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const idsToDelete = TreeModel.getSubtreeIds((await params).id, currentTree);
 
     // 4. 全ての対象記事を削除
-    const keysToDelete = idsToDelete.map((id) => datastore.key(['Article', datastore.int(id)]));
+    const keysToDelete = idsToDelete.map((id) => datastore.key(['Article', id]));
     transaction.delete(keysToDelete);
 
     // 5. ツリー構造から記事を削除
