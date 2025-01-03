@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -17,7 +17,15 @@ import {
   Collapse,
   Grid,
   Link,
+  Menu,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 import EditIcon from '@mui/icons-material/Edit';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ReactMarkdown from 'react-markdown';
@@ -27,6 +35,10 @@ import rehypeSanitize from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github.css';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
+import { TreeNode } from '@/types/tree';
+import { triggerTreeUpdate } from '@/events/treeEvents';
 
 interface Article {
   id: string;
@@ -41,6 +53,169 @@ interface AttachedFile {
   url: string;
 }
 
+// 移動先選択ダイアログのコンポーネント
+function MoveDialog({ 
+  open, 
+  onClose, 
+  onMove, 
+  currentId 
+}: { 
+  open: boolean; 
+  onClose: () => void; 
+  onMove: (newParentId: string) => Promise<void>;
+  currentId: string;
+}) {
+  const [tree, setTree] = useState<TreeNode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
+
+  useEffect(() => {
+    const fetchTree = async () => {
+      try {
+        const response = await fetch('/api/tree');
+        if (!response.ok) throw new Error('ツリーの取得に失敗しました');
+        const data = await response.json();
+        setTree(data.tree);
+      } catch (error) {
+        console.error('Error fetching tree:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (open) {
+      fetchTree();
+      setSelectedNodeId(null);
+      setIsMoving(false); // ダイアログを開くたびにリセット
+    }
+  }, [open]);
+
+  const handleSelect = (nodeId: string) => {
+    setSelectedNodeId(nodeId);
+  };
+
+  const handleMove = async () => {
+    if (selectedNodeId) {
+      try {
+        setIsMoving(true);
+        await onMove(selectedNodeId);
+        onClose();
+      } catch (error) {
+        console.error('移動に失敗しました:', error);
+        // エラー表示などの処理を追加
+      } finally {
+        setIsMoving(false);
+      }
+    }
+  };
+
+  // ダイアログを閉じる時の処理
+  const handleClose = () => {
+    if (!isMoving) {
+      onClose();
+    }
+  };
+
+  // 指定したノードの子孫ノードIDを全て取得する関数
+  const getDescendantIds = (nodes: TreeNode[], targetId: string): string[] => {
+    const descendants: string[] = [];
+    
+    const traverse = (nodes: TreeNode[]) => {
+      for (const node of nodes) {
+        if (node.id === targetId) {
+          // 対象ノードが見つかったら、その配下のノードIDを全て収集
+          const collectIds = (n: TreeNode) => {
+            descendants.push(n.id);
+            n.children?.forEach(collectIds);
+          };
+          collectIds(node);
+          return true;
+        }
+        if (node.children && traverse(node.children)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    traverse(nodes);
+    return descendants;
+  };
+
+  // 移動不可能なノードIDのリストを生成
+  const disabledNodeIds = useMemo(() => {
+    if (!currentId || !tree.length) return [currentId];
+    return getDescendantIds(tree, currentId);
+  }, [currentId, tree]);
+
+  const renderTreeItems = (nodes: TreeNode[], level = 0) => {
+    return nodes.map((node) => (
+      <Box key={node.id}>
+        <MenuItem
+          onClick={() => handleSelect(node.id)}
+          disabled={disabledNodeIds.includes(node.id)}
+          selected={node.id === selectedNodeId}
+          sx={{ 
+            pl: level * 4,
+            '&.Mui-selected': {
+              backgroundColor: 'action.selected',
+            },
+            // 移動不可能なノードの視覚的フィードバックを強化
+            '&.Mui-disabled': {
+              opacity: 0.5,
+              backgroundColor: 'action.disabledBackground',
+            }
+          }}
+        >
+          <ListItemText 
+            primary={node.title}
+            secondary={disabledNodeIds.includes(node.id) ? '移動先として選択できません' : undefined}
+          />
+        </MenuItem>
+        {node.children && renderTreeItems(node.children, level + 1)}
+      </Box>
+    ));
+  };
+
+  return (
+    <Dialog 
+      open={open} 
+      onClose={handleClose}
+      maxWidth="sm" 
+      fullWidth
+      disableEscapeKeyDown={isMoving}
+    >
+      <DialogTitle>移動先を選択</DialogTitle>
+      <DialogContent>
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <List>
+            {renderTreeItems(tree)}
+          </List>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button 
+          onClick={handleClose}
+          disabled={isMoving}
+        >
+          キャンセル
+        </Button>
+        <LoadingButton
+          onClick={handleMove}
+          disabled={!selectedNodeId}
+          loading={isMoving}
+          variant="contained"
+        >
+          移動
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
@@ -48,6 +223,17 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+  const [currentId, setCurrentId] = useState<string>('');
+
+  useEffect(() => {
+    const fetchId = async () => {
+      const { id } = await params;
+      setCurrentId(id);
+    };
+    fetchId();
+  }, [params]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,6 +264,36 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
   const handleEditClick = async () => {
     router.push(`/articles/${(await params).id}/edit`);
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
+  const handleMoveArticle = async (newParentId: string) => {
+    try {
+      const response = await fetch(`/api/articles/${(await params).id}/move`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newParentId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('記事の移動に失敗しました');
+      }
+
+      // ツリー更新イベントを発火
+      triggerTreeUpdate();
+    } catch (error) {
+      console.error('Error moving article:', error);
+      // エラー処理
+    }
   };
 
   if (isLoading) {
@@ -111,7 +327,39 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         <IconButton onClick={handleEditClick} aria-label="記事を編集" size="small">
           <EditIcon />
         </IconButton>
+        <IconButton
+          onClick={handleMenuOpen}
+          aria-label="その他の操作"
+          size="small"
+        >
+          <MoreVertIcon />
+        </IconButton>
       </Stack>
+
+      {/* メニュー */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={() => {
+          handleMenuClose();
+          setMoveDialogOpen(true);
+        }}>
+          <ListItemIcon>
+            <DriveFileMoveIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>移動</ListItemText>
+        </MenuItem>
+      </Menu>
+
+      {/* 移動ダイアログ */}
+      <MoveDialog
+        open={moveDialogOpen}
+        onClose={() => setMoveDialogOpen(false)}
+        onMove={handleMoveArticle}
+        currentId={currentId}
+      />
 
       <Paper
         elevation={0}
