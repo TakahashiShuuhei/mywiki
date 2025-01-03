@@ -2,10 +2,19 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, TextField, Button, Stack, CircularProgress, Typography } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
+import { Box, TextField, Button, Stack, CircularProgress, Typography, Tabs, Tab } from '@mui/material';
 import { triggerTreeUpdate } from '@/events/treeEvents';
+import EditIcon from '@mui/icons-material/Edit';
+import PreviewIcon from '@mui/icons-material/Visibility';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize from 'rehype-sanitize';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github.css';
+
+// タブのインデックスの型
+type TabValue = 0 | 1;
 
 export default function ArticleEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -17,6 +26,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const textFieldRef = useRef<HTMLTextAreaElement>(null);
+  const [currentTab, setCurrentTab] = useState<TabValue>(0);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -137,6 +147,17 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
     }
   };
 
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: TabValue) => {
+    setCurrentTab(newValue);
+  };
+
+  // ドラッグ&ドロップのハンドラーを編集モードの時のみ有効にする
+  const dragHandlers = currentTab === 0 ? {
+    onDragOver: handleDragOver,
+    onDragLeave: handleDragLeave,
+    onDrop: handleDrop,
+  } : {};
+
   if (isLoading) {
     return <CircularProgress />;
   }
@@ -155,12 +176,10 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
         p: 2,
         position: 'relative',
       }}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      {...dragHandlers}
     >
-      {/* ドラッグ中のオーバーレイ */}
-      {isDragging && (
+      {/* ドラッグ中のオーバーレイ（編集モードのみ） */}
+      {isDragging && currentTab === 0 && (
         <Box
           sx={{
             position: 'absolute',
@@ -182,6 +201,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
         </Box>
       )}
 
+      {/* タイトル入力（常に表示） */}
       <TextField
         label="タイトル"
         value={title}
@@ -191,42 +211,88 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
         sx={{ mb: 2 }}
       />
 
-      <TextField
-        inputRef={textFieldRef}
-        label="本文"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        multiline
-        fullWidth
-        variant="outlined"
-        sx={{
-          flex: 1,
-          '& .MuiInputBase-root': {
-            height: '100%',
-          },
-          '& .MuiInputBase-input': {
-            height: '100% !important',
-            overflow: 'auto !important',
-          },
-        }}
-      />
+      {/* タブ切り替え */}
+      <Tabs value={currentTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tab icon={<EditIcon />} iconPosition="start" label="編集" />
+        <Tab icon={<PreviewIcon />} iconPosition="start" label="プレビュー" />
+      </Tabs>
 
-      <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
-        <Button
-          variant="outlined"
-          onClick={handleCancel}
-          startIcon={<CancelIcon />}
-          disabled={isSaving}
-        >
-          キャンセル
-        </Button>
+      {/* 編集/プレビュー領域 */}
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
+        {currentTab === 0 ? (
+          // 編集モード
+          <TextField
+            inputRef={textFieldRef}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            multiline
+            fullWidth
+            variant="outlined"
+            sx={{ 
+              height: '100%',
+              '& .MuiInputBase-root': {
+                height: '100%',
+              },
+              '& .MuiInputBase-input': {
+                height: '100% !important',
+                overflow: 'auto !important',
+              },
+            }}
+          />
+        ) : (
+          // プレビューモード
+          <Box 
+            sx={{ 
+              height: '100%',
+              overflow: 'auto',
+              p: 2,
+              backgroundColor: 'background.paper',
+              '& img': {
+                maxWidth: '100%',
+                height: 'auto'
+              },
+              '& pre': {
+                p: 2,
+                borderRadius: 1,
+                overflow: 'auto',
+                backgroundColor: 'grey.100'
+              },
+            }}
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+            >
+              {content}
+            </ReactMarkdown>
+          </Box>
+        )}
+      </Box>
+
+      {/* アクションボタン（常に表示） */}
+      <Stack 
+        direction="row" 
+        spacing={2} 
+        sx={{ 
+          mt: 2,
+          borderTop: 1,
+          borderColor: 'divider',
+          pt: 2,
+        }}
+      >
         <Button
           variant="contained"
           onClick={handleSave}
-          startIcon={<SaveIcon />}
           disabled={isSaving}
         >
-          保存
+          {isSaving ? '保存中...' : '保存'}
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={handleCancel}
+          disabled={isSaving}
+        >
+          キャンセル
         </Button>
       </Stack>
     </Box>

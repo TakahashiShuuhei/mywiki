@@ -172,7 +172,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           {article.content}
         </ReactMarkdown>
 
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ my: 6 }} />
 
         {/* メタ情報 */}
         <Grid container spacing={3}>
