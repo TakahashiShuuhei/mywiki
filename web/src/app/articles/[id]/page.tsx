@@ -8,37 +8,85 @@ import {
   CircularProgress,
   IconButton,
   Stack,
-  Paper
+  Paper,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Collapse,
+  Grid,
+  Card,
+  CardContent,
+  CardHeader,
+  Link,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github.css';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { styled } from '@mui/material/styles';
 
 interface Article {
   id: string;
   title: string;
   content: string;
+  createdAt: string;
+  updatedAt: string;
 }
+
+interface AttachedFile {
+  name: string;
+  url: string;
+}
+
+// 回転するアイコンボタンのスタイル
+const ExpandMore = styled((props: {
+  expand: boolean;
+  onClick: () => void;
+  'aria-expanded': boolean;
+  'aria-label': string;
+}) => {
+  const { expand, ...other } = props;
+  return <IconButton {...other} />;
+})(({ theme, expand }) => ({
+  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+  marginLeft: 'auto',
+  transition: theme.transitions.create('transform', {
+    duration: theme.transitions.duration.shortest,
+  }),
+}));
 
 export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    const fetchArticle = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/articles/${(await params).id}`);
-        if (!response.ok) {
+        // 記事データの取得
+        const articleResponse = await fetch(`/api/articles/${(await params).id}`);
+        if (!articleResponse.ok) {
           throw new Error('記事の取得に失敗しました');
         }
-        const data = await response.json();
-        setArticle(data);
+        const articleData = await articleResponse.json();
+        setArticle(articleData);
+
+        // 添付ファイルの取得
+        const filesResponse = await fetch(`/api/articles/${(await params).id}/files`);
+        if (filesResponse.ok) {
+          const filesData = await filesResponse.json();
+          setAttachedFiles(filesData);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '記事の取得に失敗しました');
       } finally {
@@ -46,11 +94,15 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
       }
     };
 
-    fetchArticle();
+    fetchData();
   }, [params]);
 
   const handleEditClick = async () => {
     router.push(`/articles/${(await params).id}/edit`);
+  };
+
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
   };
 
   if (isLoading) {
@@ -64,6 +116,16 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
   if (!article) {
     return <Typography>記事が見つかりません</Typography>;
   }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
     <Box sx={{ p: 2 }}>
@@ -84,7 +146,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           <EditIcon />
         </IconButton>
       </Stack>
-      
+
       <Paper 
         elevation={0} 
         sx={{ 
@@ -155,6 +217,87 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         >
           {article.content}
         </ReactMarkdown>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* メタ情報 */}
+        <Grid container spacing={2}>
+          {/* 日時情報 */}
+          <Grid item xs={12} md={6}>
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  作成日時
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  {formatDate(article.createdAt)}
+                </Typography>
+                
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  更新日時
+                </Typography>
+                <Typography variant="body1">
+                  {formatDate(article.updatedAt)}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* 添付ファイル */}
+          <Grid item xs={12} md={6}>
+            <Card variant="outlined">
+              <CardHeader
+                title="添付ファイル"
+                titleTypography={{ variant: 'subtitle1' }}
+                action={
+                  attachedFiles.length > 0 && (
+                    <IconButton
+                      onClick={() => setExpanded(!expanded)}
+                      aria-expanded={expanded}
+                      aria-label="添付ファイルを表示"
+                      sx={{
+                        transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s',
+                      }}
+                    >
+                      <ExpandMoreIcon />
+                    </IconButton>
+                  )
+                }
+              />
+              <Collapse in={expanded} timeout="auto" unmountOnExit>
+                <CardContent>
+                  {attachedFiles.length > 0 ? (
+                    <List dense disablePadding>
+                      {attachedFiles.map((file) => (
+                        <ListItem key={file.name} disablePadding>
+                          <ListItemIcon>
+                            <AttachFileIcon fontSize="small" />
+                          </ListItemIcon>
+                          <ListItemText>
+                            <Link
+                              href={file.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              color="primary"
+                              underline="hover"
+                            >
+                              {file.name}
+                            </Link>
+                          </ListItemText>
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      添付ファイルはありません
+                    </Typography>
+                  )}
+                </CardContent>
+              </Collapse>
+            </Card>
+          </Grid>
+        </Grid>
       </Paper>
     </Box>
   );
