@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, TextField, Button, Stack, CircularProgress, Typography, Tabs, Tab } from '@mui/material';
+import {
+  Box,
+  TextField,
+  Button,
+  Stack,
+  CircularProgress,
+  Typography,
+  Tabs,
+  Tab,
+} from '@mui/material';
 import { triggerTreeUpdate } from '@/events/treeEvents';
 import EditIcon from '@mui/icons-material/Edit';
 import PreviewIcon from '@mui/icons-material/Visibility';
@@ -152,11 +161,14 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
   };
 
   // ドラッグ&ドロップのハンドラーを編集モードの時のみ有効にする
-  const dragHandlers = currentTab === 0 ? {
-    onDragOver: handleDragOver,
-    onDragLeave: handleDragLeave,
-    onDrop: handleDrop,
-  } : {};
+  const dragHandlers =
+    currentTab === 0
+      ? {
+          onDragOver: handleDragOver,
+          onDragLeave: handleDragLeave,
+          onDrop: handleDrop,
+        }
+      : {};
 
   if (isLoading) {
     return <CircularProgress />;
@@ -212,7 +224,11 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
       />
 
       {/* タブ切り替え */}
-      <Tabs value={currentTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Tabs
+        value={currentTab}
+        onChange={handleTabChange}
+        sx={{ borderBottom: 1, borderColor: 'divider' }}
+      >
         <Tab icon={<EditIcon />} iconPosition="start" label="編集" />
         <Tab icon={<PreviewIcon />} iconPosition="start" label="プレビュー" />
       </Tabs>
@@ -228,7 +244,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
             multiline
             fullWidth
             variant="outlined"
-            sx={{ 
+            sx={{
               height: '100%',
               '& .MuiInputBase-root': {
                 height: '100%',
@@ -241,21 +257,21 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
           />
         ) : (
           // プレビューモード
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               height: '100%',
               overflow: 'auto',
               p: 2,
               backgroundColor: 'background.paper',
               '& img': {
                 maxWidth: '100%',
-                height: 'auto'
+                height: 'auto',
               },
               '& pre': {
                 p: 2,
                 borderRadius: 1,
                 overflow: 'auto',
-                backgroundColor: 'grey.100'
+                backgroundColor: 'grey.100',
               },
             }}
           >
@@ -270,28 +286,20 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
       </Box>
 
       {/* アクションボタン（常に表示） */}
-      <Stack 
-        direction="row" 
-        spacing={2} 
-        sx={{ 
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{
           mt: 2,
           borderTop: 1,
           borderColor: 'divider',
           pt: 2,
         }}
       >
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={isSaving}
-        >
+        <Button variant="contained" onClick={handleSave} disabled={isSaving}>
           {isSaving ? '保存中...' : '保存'}
         </Button>
-        <Button
-          variant="outlined"
-          onClick={handleCancel}
-          disabled={isSaving}
-        >
+        <Button variant="outlined" onClick={handleCancel} disabled={isSaving}>
           キャンセル
         </Button>
       </Stack>
