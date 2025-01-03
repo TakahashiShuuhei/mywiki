@@ -120,7 +120,7 @@ function MoveDialog({
   // 指定したノードの子孫ノードIDを全て取得する関数
   const getDescendantIds = (nodes: TreeNode[], targetId: string): string[] => {
     const descendants: string[] = [];
-
+    
     const traverse = (nodes: TreeNode[]) => {
       for (const node of nodes) {
         if (node.id === targetId) {
@@ -150,32 +150,44 @@ function MoveDialog({
   }, [currentId, tree]);
 
   const renderTreeItems = (nodes: TreeNode[], level = 0) => {
-    return nodes.map((node) => (
-      <Box key={node.id}>
-        <MenuItem
-          onClick={() => handleSelect(node.id)}
-          disabled={disabledNodeIds.includes(node.id)}
-          selected={node.id === selectedNodeId}
-          sx={{
-            pl: level * 4,
-            '&.Mui-selected': {
-              backgroundColor: 'action.selected',
-            },
-            // 移動不可能なノードの視覚的フィードバックを強化
-            '&.Mui-disabled': {
-              opacity: 0.5,
-              backgroundColor: 'action.disabledBackground',
-            },
-          }}
-        >
-          <ListItemText
-            primary={node.title}
-            secondary={disabledNodeIds.includes(node.id) ? '移動先として選択できません' : undefined}
-          />
-        </MenuItem>
-        {node.children && renderTreeItems(node.children, level + 1)}
-      </Box>
-    ));
+    return nodes.map((node) => {
+      // 移動対象のノードとその子孫ノードの場合は、移動対象ノードのみ表示
+      if (disabledNodeIds.includes(node.id)) {
+        if (node.id === currentId) {
+          return (
+            <MenuItem
+              key={node.id}
+              disabled
+              sx={{ 
+                pl: level * 4,
+                opacity: 0.5,
+              }}
+            >
+              <ListItemText primary={node.title} />
+            </MenuItem>
+          );
+        }
+        return null; // 子孫ノードは表示しない
+      }
+
+      return (
+        <Box key={node.id}>
+          <MenuItem
+            onClick={() => handleSelect(node.id)}
+            selected={node.id === selectedNodeId}
+            sx={{ 
+              pl: level * 4,
+              '&.Mui-selected': {
+                backgroundColor: 'action.selected',
+              }
+            }}
+          >
+            <ListItemText primary={node.title} />
+          </MenuItem>
+          {node.children && renderTreeItems(node.children, level + 1)}
+        </Box>
+      );
+    });
   };
 
   return (
