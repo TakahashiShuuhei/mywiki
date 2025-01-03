@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import { triggerTreeUpdate } from '@/events/treeEvents';
 
 export default function ArticleEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -56,6 +57,8 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
       if (!response.ok) {
         throw new Error('記事の保存に失敗しました');
       }
+
+      triggerTreeUpdate();
 
       router.push(`/articles/${id}`);
     } catch (err) {
