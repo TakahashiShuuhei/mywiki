@@ -225,7 +225,7 @@ function DeleteConfirmDialog({
   open,
   onClose,
   onConfirm,
-  isDeleting
+  isDeleting,
 }: {
   open: boolean;
   onClose: () => void;
@@ -233,13 +233,7 @@ function DeleteConfirmDialog({
   isDeleting: boolean;
 }) {
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      disableEscapeKeyDown={isDeleting}
-    >
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth disableEscapeKeyDown={isDeleting}>
       <DialogTitle>記事の削除</DialogTitle>
       <DialogContent>
         <Typography>
@@ -248,18 +242,10 @@ function DeleteConfirmDialog({
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button
-          onClick={onClose}
-          disabled={isDeleting}
-        >
+        <Button onClick={onClose} disabled={isDeleting}>
           キャンセル
         </Button>
-        <LoadingButton
-          onClick={onConfirm}
-          loading={isDeleting}
-          color="error"
-          variant="contained"
-        >
+        <LoadingButton onClick={onConfirm} loading={isDeleting} color="error" variant="contained">
           削除
         </LoadingButton>
       </DialogActions>
@@ -367,7 +353,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
       // 削除成功後、一覧ページに戻る
       router.push('/');
-      
+
       // ツリー更新イベントを発火
       triggerTreeUpdate();
     } catch (error) {
