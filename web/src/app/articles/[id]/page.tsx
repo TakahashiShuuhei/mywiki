@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { 
+  Box, 
+  Typography, 
+  CircularProgress,
+  IconButton,
+  Stack
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface Article {
   id: string;
@@ -10,6 +18,7 @@ interface Article {
 }
 
 export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +42,10 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
     fetchArticle();
   }, [params]);
 
+  const handleEditClick = async () => {
+    router.push(`/articles/${(await params).id}/edit`);
+  };
+
   if (isLoading) {
     return <CircularProgress />;
   }
@@ -47,9 +60,23 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h4" gutterBottom>
-        {article.title}
-      </Typography>
+      <Stack 
+        direction="row" 
+        alignItems="center" 
+        spacing={1} 
+        sx={{ mb: 2 }}
+      >
+        <Typography variant="h4" component="h1">
+          {article.title}
+        </Typography>
+        <IconButton 
+          onClick={handleEditClick}
+          aria-label="記事を編集"
+          size="small"
+        >
+          <EditIcon />
+        </IconButton>
+      </Stack>
       <Typography>{article.content}</Typography>
     </Box>
   );
