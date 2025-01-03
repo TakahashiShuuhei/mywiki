@@ -54,14 +54,14 @@ interface AttachedFile {
 }
 
 // 移動先選択ダイアログのコンポーネント
-function MoveDialog({ 
-  open, 
-  onClose, 
-  onMove, 
-  currentId 
-}: { 
-  open: boolean; 
-  onClose: () => void; 
+function MoveDialog({
+  open,
+  onClose,
+  onMove,
+  currentId,
+}: {
+  open: boolean;
+  onClose: () => void;
   onMove: (newParentId: string) => Promise<void>;
   currentId: string;
 }) {
@@ -120,7 +120,7 @@ function MoveDialog({
   // 指定したノードの子孫ノードIDを全て取得する関数
   const getDescendantIds = (nodes: TreeNode[], targetId: string): string[] => {
     const descendants: string[] = [];
-    
+
     const traverse = (nodes: TreeNode[]) => {
       for (const node of nodes) {
         if (node.id === targetId) {
@@ -156,7 +156,7 @@ function MoveDialog({
           onClick={() => handleSelect(node.id)}
           disabled={disabledNodeIds.includes(node.id)}
           selected={node.id === selectedNodeId}
-          sx={{ 
+          sx={{
             pl: level * 4,
             '&.Mui-selected': {
               backgroundColor: 'action.selected',
@@ -165,10 +165,10 @@ function MoveDialog({
             '&.Mui-disabled': {
               opacity: 0.5,
               backgroundColor: 'action.disabledBackground',
-            }
+            },
           }}
         >
-          <ListItemText 
+          <ListItemText
             primary={node.title}
             secondary={disabledNodeIds.includes(node.id) ? '移動先として選択できません' : undefined}
           />
@@ -179,28 +179,19 @@ function MoveDialog({
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={handleClose}
-      maxWidth="sm" 
+      maxWidth="sm"
       fullWidth
       disableEscapeKeyDown={isMoving}
     >
       <DialogTitle>移動先を選択</DialogTitle>
       <DialogContent>
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <List>
-            {renderTreeItems(tree)}
-          </List>
-        )}
+        {loading ? <CircularProgress /> : <List>{renderTreeItems(tree)}</List>}
       </DialogContent>
       <DialogActions>
-        <Button 
-          onClick={handleClose}
-          disabled={isMoving}
-        >
+        <Button onClick={handleClose} disabled={isMoving}>
           キャンセル
         </Button>
         <LoadingButton
@@ -327,25 +318,19 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         <IconButton onClick={handleEditClick} aria-label="記事を編集" size="small">
           <EditIcon />
         </IconButton>
-        <IconButton
-          onClick={handleMenuOpen}
-          aria-label="その他の操作"
-          size="small"
-        >
+        <IconButton onClick={handleMenuOpen} aria-label="その他の操作" size="small">
           <MoreVertIcon />
         </IconButton>
       </Stack>
 
       {/* メニュー */}
-      <Menu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={() => {
-          handleMenuClose();
-          setMoveDialogOpen(true);
-        }}>
+      <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose}>
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            setMoveDialogOpen(true);
+          }}
+        >
           <ListItemIcon>
             <DriveFileMoveIcon fontSize="small" />
           </ListItemIcon>
