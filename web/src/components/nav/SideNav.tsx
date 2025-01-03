@@ -25,7 +25,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { TreeStructure, TreeNode } from '@/types/tree';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { TREE_UPDATE_EVENT } from '@/events/treeEvents';
 
 type TreeItemType = {
@@ -169,6 +169,51 @@ export default function SideNav() {
   const [updateTrigger, setUpdateTrigger] = useState(0);
   const [expandedItems, setExpandedItems] = useState<string[]>(['root']);
 
+  const [selectedItem, setSelectedItem] = useState<string>('');
+  const pathname = usePathname();
+  useEffect(() => {
+    function findItemPath(items: TreeItemType[], targetId: string): string[] | null {
+      const find = (
+        currentItems: TreeItemType[],
+        target: string,
+        currentPath: string[] = []
+      ): string[] | null => {
+        for (const item of currentItems) {
+          // 現在のパスに現在の項目のIDを追加
+          const newPath = [...currentPath, item.id];
+          
+          // 目的のIDが見つかった場合はパスを返す
+          if (item.id === target) {
+            return newPath;
+          }
+          
+          // 子要素がある場合は再帰的に探索
+          if (item.children && item.children.length > 0) {
+            const result = find(item.children, target, newPath);
+            if (result) {
+              return result;
+            }
+          }
+        }
+        
+        return null;
+      };
+    
+      return find(items, targetId);
+    }
+    const match = pathname.match(/\/articles\/([^\/]+)/);
+    if (match) {
+      const articleId = match[1];
+      const parents = findItemPath(treeItems, articleId);
+      if (parents) {
+        setExpandedItems(parents);
+      }
+      setSelectedItem(articleId);
+    } else if (pathname === '/') {
+      setSelectedItem('root');
+    }
+  }, [pathname, treeItems]);
+
   const fetchTree = async () => {
     try {
       setIsLoading(true);
@@ -254,6 +299,7 @@ export default function SideNav() {
       }}
       expansionTrigger="iconContainer"
       expandedItems={expandedItems}
+      selectedItems={selectedItem}
       onExpandedItemsChange={(event, ids) => setExpandedItems(ids)}
       onItemClick={handleItemClick}
       sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
